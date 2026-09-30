@@ -3,6 +3,7 @@ export * as Conversations from "./conversations.ts";
 import { Context, Effect, Layer } from "effect";
 import { DomainEvents } from "../database/events/domain-events.ts";
 import { EventOutbox } from "../database/events/outbox.ts";
+import { AgentRoutines } from "../workspaces/agent-routines/agent-routines.ts";
 import { AgentStateService } from "../workspaces/agent-state/state.ts";
 import { ChatView } from "./chats/chat-view.ts";
 import { Chats } from "./chats/chats.ts";
@@ -31,6 +32,7 @@ const services = Layer.mergeAll(
 	Chats.layer,
 	Collaborations.layer,
 	AgentStateService.layer,
+	AgentRoutines.layer,
 	Routines.layer,
 	Routines.webhooksLayer,
 	RoutineRunner.layer,

@@ -4,9 +4,20 @@ import type { Effect } from "effect";
 import type { RunEffect } from "../../database/database.ts";
 import type { EventBus } from "../../database/events/bus.ts";
 import { UserMessage } from "../../user-message.ts";
+import type { AgentRoutines } from "../../workspaces/agent-routines/agent-routines.ts";
 import type { AgentStateService } from "../../workspaces/agent-state/state.ts";
 import type { AgentRepository } from "../../workspaces/agents/agent-repository.ts";
 import { SEARCH_HISTORY_TOOL } from "../threads/message-text.ts";
+import {
+	LIST_SCHEDULES_TOOL,
+	listSchedulesTool,
+	RUN_SCHEDULE_TOOL,
+	runScheduleTool,
+	SCHEDULE_TOOL,
+	scheduleTool,
+	UNSCHEDULE_TOOL,
+	unscheduleTool,
+} from "../tools/agent-routines/tool.ts";
 import {
 	FORGET_TOOL,
 	forgetTool,
@@ -62,6 +73,8 @@ export interface ToolDependencies {
 	run: RunEffect;
 	/** Per-agent durable state: `remember`, `recall`, `recall_all`, `forget`. */
 	state: Pick<AgentStateService.Interface, "remember" | "recall" | "recallAll" | "forget">;
+	/** Per-agent routine management: `schedule`, `list_schedules`, `unschedule`, `run_schedule`. */
+	agentRoutines: Pick<AgentRoutines.Interface, "schedule" | "list" | "unschedule" | "runNow">;
 	/** The reply being written, for tools that leave a mark in it. */
 	reply: {
 		length: () => number;
@@ -153,7 +166,8 @@ export function toolsForTurn(prepared: PreparedTurn, deps: ToolDependencies): To
 		state: deps.state,
 		run: deps.run,
 	};
-	if (!prepared.context.agent.disabledTools.includes("memory")) {
+	const disabled = prepared.context.agent.disabledTools;
+	if (!disabled.includes("memory")) {
 		tools[REMEMBER_TOOL] = recorded(REMEMBER_TOOL, rememberTool(stateOptions), {
 			...recording,
 			mutating: true,
@@ -161,6 +175,33 @@ export function toolsForTurn(prepared: PreparedTurn, deps: ToolDependencies): To
 		tools[RECALL_TOOL] = recorded(RECALL_TOOL, recallTool(stateOptions), recording);
 		tools[RECALL_ALL_TOOL] = recorded(RECALL_ALL_TOOL, recallAllTool(stateOptions), recording);
 		tools[FORGET_TOOL] = recorded(FORGET_TOOL, forgetTool(stateOptions), {
+			...recording,
+			mutating: true,
+		});
+	}
+	const routineOptions = {
+		caller: {
+			workspaceId: prepared.context.thread.workspaceId,
+			agentId: prepared.context.agent.id,
+		},
+		routines: deps.agentRoutines,
+		run: deps.run,
+	};
+	if (!disabled.includes("routines")) {
+		tools[SCHEDULE_TOOL] = recorded(SCHEDULE_TOOL, scheduleTool(routineOptions), {
+			...recording,
+			mutating: true,
+		});
+		tools[LIST_SCHEDULES_TOOL] = recorded(
+			LIST_SCHEDULES_TOOL,
+			listSchedulesTool(routineOptions),
+			recording,
+		);
+		tools[UNSCHEDULE_TOOL] = recorded(UNSCHEDULE_TOOL, unscheduleTool(routineOptions), {
+			...recording,
+			mutating: true,
+		});
+		tools[RUN_SCHEDULE_TOOL] = recorded(RUN_SCHEDULE_TOOL, runScheduleTool(routineOptions), {
 			...recording,
 			mutating: true,
 		});

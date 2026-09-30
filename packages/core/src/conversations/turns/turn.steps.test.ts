@@ -10,6 +10,7 @@ import { Ids } from "../../ids/ids.ts";
 import { Models } from "../../providers/models/models.ts";
 import { chunks, scriptedModel, streamed, unusedModel } from "../../providers/models/testing.ts";
 import { unimplemented } from "../../testing.ts";
+import { AgentRoutines } from "../../workspaces/agent-routines/agent-routines.ts";
 import { AgentStateService } from "../../workspaces/agent-state/state.ts";
 import { AgentRepository } from "../../workspaces/agents/agent-repository.ts";
 import { BuiltInTools } from "../tools/built-in.ts";
@@ -530,6 +531,7 @@ function segmentWith(given: Given) {
 				Layer.succeed(BuiltInTools.Service, given.builtInTools ?? BuiltInTools.none),
 				Layer.succeed(ConnectionTools.Service, given.connectionTools ?? ConnectionTools.none),
 				Layer.succeed(AgentStateService.Service, AgentStateService.none),
+				Layer.succeed(AgentRoutines.Service, AgentRoutines.none),
 				unimplemented(TurnExecution.Service, given.execution),
 				unimplemented(TurnRepository.Service, given.turns),
 				unimplemented(ToolCallRepository.Service, given.toolCalls),
