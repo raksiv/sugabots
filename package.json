@@ -36,7 +36,9 @@
 		"db:push": "bun run --cwd packages/core db:push",
 		"db:migrate": "bun run --cwd packages/core db:migrate",
 		"db:studio": "bun run --cwd packages/core db:studio",
-		"db:seed": "node --env-file-if-exists=.env packages/server/src/seed.ts"
+		"db:seed": "node --env-file-if-exists=.env packages/server/src/seed.ts",
+		"db:seed:grapevine": "node --env-file-if-exists=.env packages/server/src/setup-grapevine.ts && node --env-file-if-exists=.env packages/server/src/seed-grapevine-history.ts",
+		"db:reset": "bun run db:migrate && bun run db:seed && bun run db:seed:grapevine"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.12",
