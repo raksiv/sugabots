@@ -19,6 +19,7 @@ import { EventBus } from "../../database/events/bus.ts";
 import { Ids } from "../../ids/ids.ts";
 import { Models } from "../../providers/models/models.ts";
 import { type UserFacing, UserMessage } from "../../user-message.ts";
+import { AgentStateService } from "../../workspaces/agent-state/state.ts";
 import { AgentRepository } from "../../workspaces/agents/agent-repository.ts";
 import { ConversationEvents } from "../conversation-events.ts";
 import { ConversationEvent } from "../events.ts";
@@ -77,6 +78,7 @@ type SegmentServices =
 	| Collaborations.Service
 	| ApprovedToolCalls.Service
 	| AgentRepository.Service
+	| AgentStateService.Service
 	| Ids.Service;
 
 /** The turn workflow's steps, which its activities reach through `TurnSteps`. */
@@ -367,6 +369,7 @@ const streamReply = (
 			const collaborations = yield* Collaborations.Service;
 			const approvals = yield* ApprovedToolCalls.Service;
 			const agents = yield* AgentRepository.Service;
+			const state = yield* AgentStateService.Service;
 			const signal = yield* Effect.abortSignal;
 
 			// One writer at a time: the periodic save, the on-size save and a tool
@@ -416,6 +419,7 @@ const streamReply = (
 				connections: connections.tools,
 				agents,
 				bus: events,
+				state,
 				run: effectRunner({ runPromiseExit: Effect.runPromiseExitWith(context) }),
 				reply: {
 					length: () => Ref.getUnsafe(reply).content.length,

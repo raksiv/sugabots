@@ -407,5 +407,53 @@ export const agent = pgTable(
 	],
 );
 
+/**
+ * Durable state an agent authors and reads across turns and runs.
+ *
+ * One writer per key — the owning agent. Pod-mates may read across but never
+ * write. A row's `source` distinguishes what the agent wrote from what a
+ * human set through the UI, so a turn can decide whether to overwrite a
+ * human's setting or leave it alone.
+ *
+ * Scoped by (workspaceId, agentId) — the composite foreign key to `agent`
+ * cascades on agent or workspace delete and prevents a row's workspace from
+ * drifting from its agent's.
+ */
+export const agentState = pgTable(
+	"agent_state",
+	{
+		id: primaryKey(),
+		workspaceId: uuid("workspace_id").notNull(),
+		agentId: uuid("agent_id").notNull(),
+		key: text("key").notNull(),
+		value: jsonb("value").notNull(),
+		// One sentence explaining why the entry exists, shown in the UI and passed
+		// to the agent on recall so it can decide whether a value is still relevant.
+		purpose: text("purpose").notNull(),
+		source: text("source").$type<"agent" | "human">().notNull(),
+		// Set when a human wrote it, null when the agent did. The row survives the
+		// person leaving the workspace: `on delete set null`.
+		sourceUserId: uuid("source_user_id").references(() => user.id, { onDelete: "set null" }),
+		createdAt: stamp("created_at"),
+		updatedAt: updatedStamp("updated_at"),
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.agentId, table.workspaceId],
+			foreignColumns: [agent.id, agent.workspaceId],
+			name: "agent_state_agent_workspace_fkey",
+		}).onDelete("cascade"),
+		uniqueIndex("agent_state_agent_key_idx").on(table.agentId, table.key),
+		index("agent_state_agent_id_idx").on(table.agentId),
+		check("agent_state_source_check", sql`${table.source} in ('agent', 'human')`),
+		// A human-set row names the user; an agent-set row does not.
+		check(
+			"agent_state_source_user_check",
+			sql`(${table.source} = 'human') = (${table.sourceUserId} is not null)`,
+		),
+	],
+);
+
 export type PodRow = typeof pod.$inferSelect;
 export type AgentRow = typeof agent.$inferSelect;
+export type AgentStateRow = typeof agentState.$inferSelect;

@@ -15,6 +15,7 @@ import {
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { Authentication } from "../auth/authentication.ts";
 import { requireCookieOrigin, sessionLayer } from "../auth/middleware.ts";
+import { agentStateRoutes } from "../routes/agent-state/routes.ts";
 import { agentRoutes } from "../routes/agents/routes.ts";
 import { chatRoutes } from "../routes/chats/routes.ts";
 import { connectionRoutes } from "../routes/connections/routes.ts";
@@ -82,6 +83,7 @@ export const apiLayer: Layer.Layer<never, never, HttpServices | ApiInfrastructur
 				searchProviderRoutes,
 				connectionRoutes,
 				agentRoutes,
+				agentStateRoutes,
 				chatRoutes,
 				routineRoutes,
 				toolApprovalRoutes,

@@ -1,4 +1,5 @@
 import { HttpApi } from "effect/unstable/httpapi";
+import { AgentStateApi } from "./groups/agent-state.ts";
 import { AgentsApi } from "./groups/agents.ts";
 import { ChatsApi } from "./groups/chats.ts";
 import { ConnectionsApi } from "./groups/connections.ts";
@@ -32,6 +33,7 @@ export class Api extends HttpApi.make("sugabots")
 	.add(SystemApi)
 	.add(WorkspacesApi)
 	.add(AgentsApi)
+	.add(AgentStateApi)
 	.add(PodsApi)
 	.add(OnboardingApi)
 	.add(SystemAgentsApi)

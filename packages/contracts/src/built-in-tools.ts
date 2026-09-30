@@ -6,7 +6,7 @@ import { Schema } from "effect";
  * 005). The keys are what the model calls and what a `tool_call` records;
  * the names and descriptions are for the agent's settings page.
  */
-export const builtInToolKeySchema = Schema.Literals(["web_fetch", "web_search"]);
+export const builtInToolKeySchema = Schema.Literals(["web_fetch", "web_search", "memory"]);
 export type BuiltInToolKey = typeof builtInToolKeySchema.Type;
 
 export interface BuiltInToolEntry {
@@ -26,5 +26,10 @@ export const builtInToolCatalog: readonly BuiltInToolEntry[] = [
 		key: "web_search",
 		name: "Search the web",
 		description: "Searches through the workspace's search provider, when one is switched on.",
+	},
+	{
+		key: "memory",
+		name: "Memory",
+		description: "A durable notepad the agent reads and writes across turns.",
 	},
 ];

@@ -4,8 +4,19 @@ import type { Effect } from "effect";
 import type { RunEffect } from "../../database/database.ts";
 import type { EventBus } from "../../database/events/bus.ts";
 import { UserMessage } from "../../user-message.ts";
+import type { AgentStateService } from "../../workspaces/agent-state/state.ts";
 import type { AgentRepository } from "../../workspaces/agents/agent-repository.ts";
 import { SEARCH_HISTORY_TOOL } from "../threads/message-text.ts";
+import {
+	FORGET_TOOL,
+	forgetTool,
+	RECALL_ALL_TOOL,
+	RECALL_TOOL,
+	REMEMBER_TOOL,
+	recallAllTool,
+	recallTool,
+	rememberTool,
+} from "../tools/agent-state/tool.ts";
 import type { Collaborations } from "../tools/collaborate/collaborations.ts";
 import { collaborateTool } from "../tools/collaborate/tool.ts";
 import type { OfferedTool } from "../tools/connections.ts";
@@ -49,6 +60,8 @@ export interface ToolDependencies {
 	bus: Pick<EventBus.Interface, "subscribe">;
 	/** Runs a service's Effect from inside the SDK's promise-shaped tool call. */
 	run: RunEffect;
+	/** Per-agent durable state: `remember`, `recall`, `recall_all`, `forget`. */
+	state: Pick<AgentStateService.Interface, "remember" | "recall" | "recallAll" | "forget">;
 	/** The reply being written, for tools that leave a mark in it. */
 	reply: {
 		length: () => number;
@@ -130,6 +143,27 @@ export function toolsForTurn(prepared: PreparedTurn, deps: ToolDependencies): To
 			}),
 			{ ...recording, mutating: true },
 		);
+	}
+	const stateOptions = {
+		caller: {
+			workspaceId: prepared.context.thread.workspaceId,
+			agentId: prepared.context.agent.id,
+			podId: prepared.context.agent.podId,
+		},
+		state: deps.state,
+		run: deps.run,
+	};
+	if (!prepared.context.agent.disabledTools.includes("memory")) {
+		tools[REMEMBER_TOOL] = recorded(REMEMBER_TOOL, rememberTool(stateOptions), {
+			...recording,
+			mutating: true,
+		});
+		tools[RECALL_TOOL] = recorded(RECALL_TOOL, recallTool(stateOptions), recording);
+		tools[RECALL_ALL_TOOL] = recorded(RECALL_ALL_TOOL, recallAllTool(stateOptions), recording);
+		tools[FORGET_TOOL] = recorded(FORGET_TOOL, forgetTool(stateOptions), {
+			...recording,
+			mutating: true,
+		});
 	}
 	if (prepared.context.crew.length > 0) {
 		tools.collaborate = collaborateTool({

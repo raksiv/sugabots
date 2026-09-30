@@ -2,6 +2,7 @@
  * Portable schemas and types shared by the core, server, SDK and clients.
  */
 
+export * from "./agent-state.ts";
 export * from "./agents.ts";
 export * from "./api.ts";
 export * from "./appearance.ts";

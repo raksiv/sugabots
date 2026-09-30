@@ -10,6 +10,7 @@ import { closeDatabase, onDatabase, onPostgres, runOnPostgres } from "../../data
 import { Models } from "../../providers/models/models.ts";
 import { chunks, scriptedModel, streamed } from "../../providers/models/testing.ts";
 import { UserMessage } from "../../user-message.ts";
+import { AgentStateService } from "../../workspaces/agent-state/state.ts";
 import { INTERVIEW_PROMPT } from "../../workspaces/agents/interview-prompt.ts";
 import { onPostgresAs } from "../../workspaces/testing.ts";
 import { Chats } from "../chats/chats.ts";
@@ -78,6 +79,7 @@ describe.skipIf(!process.env.DATABASE_URL)("a turn's segment, against Postgres",
 						),
 						Layer.succeed(BuiltInTools.Service, outside.builtInTools ?? BuiltInTools.none),
 						Layer.succeed(ConnectionTools.Service, outside.connectionTools ?? ConnectionTools.none),
+						Layer.succeed(AgentStateService.Service, AgentStateService.none),
 					),
 				),
 				Effect.provideContext(conversations),

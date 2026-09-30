@@ -34,6 +34,7 @@ import {
 } from "@/ui/settings-page.tsx";
 import { Toggle } from "@/ui/toggle.tsx";
 import { AgentModelPicker } from "./AgentModelPicker.tsx";
+import { AgentWorkspaceSettings } from "./AgentWorkspaceSettings.tsx";
 import { AgentRoutines } from "./RoutinesSettings.tsx";
 
 /*
@@ -57,7 +58,7 @@ export function AgentSettingsPage({
 	/** Opens scrolled to its routines, for a link from a routine run. */
 	initialTab?: "routines";
 }) {
-	const [page, setPage] = useState<"card" | "model" | "instructions">("card");
+	const [page, setPage] = useState<"card" | "model" | "instructions" | "memory">("card");
 	const update = useUpdateAgent(agent.id);
 	const failure = update.error ? failureMessage(update.error) : undefined;
 	const back = (
@@ -94,6 +95,9 @@ export function AgentSettingsPage({
 			/>
 		);
 	}
+	if (page === "memory") {
+		return <AgentWorkspaceSettings agent={agent} />;
+	}
 	return (
 		<ContactCard
 			agent={agent}
@@ -104,6 +108,7 @@ export function AgentSettingsPage({
 			failure={failure}
 			onOpenModel={() => setPage("model")}
 			onOpenInstructions={() => setPage("instructions")}
+			onOpenMemory={() => setPage("memory")}
 		/>
 	);
 }
@@ -119,6 +124,7 @@ function ContactCard({
 	failure,
 	onOpenModel,
 	onOpenInstructions,
+	onOpenMemory,
 }: {
 	agent: Agent;
 	pod: Pod;
@@ -128,6 +134,7 @@ function ContactCard({
 	failure: string | undefined;
 	onOpenModel: () => void;
 	onOpenInstructions: () => void;
+	onOpenMemory: () => void;
 }) {
 	const may = pod.permissions;
 	const models = useModels();
@@ -194,6 +201,12 @@ function ContactCard({
 					trailing={<SettingsValue>{may.updateAgents ? "Edit" : "View"}</SettingsValue>}
 					chevron
 					onClick={onOpenInstructions}
+				/>
+				<SettingsRow
+					label="Memory"
+					trailing={<SettingsValue>Review</SettingsValue>}
+					chevron
+					onClick={onOpenMemory}
 				/>
 			</SettingsGroup>
 			<Tools agent={agent} pod={pod} canChange={may.updateAgents} save={save} />
