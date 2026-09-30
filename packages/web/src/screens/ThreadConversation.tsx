@@ -17,6 +17,7 @@ import { splitToolKey } from "@/lib/tool-names.ts";
 import { AgentAvatar } from "@/shell/Agent.tsx";
 import { PersonAvatar } from "@/ui/avatar.tsx";
 import { CopyIconButton } from "@/ui/copy-icon-button.tsx";
+import { ChartCard, chartFromToolCall } from "./ChartCard.tsx";
 import { type ActivityState, ChatActivityRow } from "./ChatActivityRow.tsx";
 import { MessageMarkdown } from "./MessageMarkdown.tsx";
 import { textWithMentions } from "./mentions.tsx";
@@ -202,9 +203,19 @@ export function ThreadConversation({
 							}
 							if (segment.type === "tool_call") {
 								const call = segment.toolCall;
-								// Only an agent calls tools; the check narrows the author for the card.
 								if (message.author.kind !== "agent") return null;
-								// A reply stopped on the card has nothing after it, so the card ends the run.
+								if (call.tool === "render_chart" && call.status === "completed") {
+									const chart = chartFromToolCall(call.output);
+									if (chart) {
+										return (
+											<Fragment key={segment.key}>
+												{nameOnce()}
+												<ChartCard spec={chart.spec} caption={chart.caption} />
+											</Fragment>
+										);
+									}
+									return null;
+								}
 								const endsRun =
 									position === segments.length - 1 && !runContinues && !isTyping(message);
 								return (
@@ -364,8 +375,9 @@ function segmentsOf(message: Message): Segment[] {
 			return;
 		}
 		if (part.type === "tool_call") {
-			// A call somebody had to answer is the only one drawn among the bubbles, as its card.
-			if (wasPutToSomeone(part)) segments.push({ type: "tool_call", key: part.id, toolCall: part });
+			if (wasPutToSomeone(part) || part.tool === "render_chart") {
+				segments.push({ type: "tool_call", key: part.id, toolCall: part });
+			}
 			return;
 		}
 		const followed = index < message.parts.length - 1 && part.text.trim() !== "";

@@ -11,6 +11,7 @@ export const builtInToolKeySchema = Schema.Literals([
 	"web_search",
 	"memory",
 	"routines",
+	"render_chart",
 ]);
 export type BuiltInToolKey = typeof builtInToolKeySchema.Type;
 
@@ -41,5 +42,10 @@ export const builtInToolCatalog: readonly BuiltInToolEntry[] = [
 		key: "routines",
 		name: "Routines",
 		description: "Recurring routines the agent can create, run and cancel.",
+	},
+	{
+		key: "render_chart",
+		name: "Draw a chart",
+		description: "Draws a chart inline in the agent's reply.",
 	},
 ];

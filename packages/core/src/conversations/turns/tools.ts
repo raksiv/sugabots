@@ -31,6 +31,7 @@ import {
 import type { Collaborations } from "../tools/collaborate/collaborations.ts";
 import { collaborateTool } from "../tools/collaborate/tool.ts";
 import type { OfferedTool } from "../tools/connections.ts";
+import { RENDER_CHART_TOOL, renderChartTool } from "../tools/render-chart/tool.ts";
 import { SAVE_INSTRUCTIONS_TOOL, saveInstructionsTool } from "../tools/save-instructions/tool.ts";
 import { searchHistoryTool } from "../tools/search-history/tool.ts";
 import type { ApprovedToolCalls } from "./approvals/approved-calls.ts";
@@ -205,6 +206,11 @@ export function toolsForTurn(prepared: PreparedTurn, deps: ToolDependencies): To
 			...recording,
 			mutating: true,
 		});
+	}
+	// `render_chart` records its spec on the `tool_call`; the web renders it
+	// inline instead of the usual tool-use chip.
+	if (!disabled.includes(RENDER_CHART_TOOL)) {
+		tools[RENDER_CHART_TOOL] = recorded(RENDER_CHART_TOOL, renderChartTool(), recording);
 	}
 	if (prepared.context.crew.length > 0) {
 		tools.collaborate = collaborateTool({

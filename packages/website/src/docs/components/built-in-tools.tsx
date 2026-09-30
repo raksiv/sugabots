@@ -1,6 +1,7 @@
 import type { BuiltInToolKey } from "@sugabots/contracts";
 import { builtInToolCatalog } from "@sugabots/contracts";
 import {
+	BarChartIcon,
 	BookmarkIcon,
 	CalendarIcon,
 	GlobeIcon,
@@ -14,6 +15,7 @@ const toolIcons: Record<BuiltInToolKey, LucideIcon> = {
 	web_search: SearchIcon,
 	memory: BookmarkIcon,
 	routines: CalendarIcon,
+	render_chart: BarChartIcon,
 };
 
 /** The tools every agent comes with, from the product's own catalog. */
